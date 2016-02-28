@@ -62,11 +62,11 @@ python DeepIDTest.py
 ## 参考论文
 
 1. [deepID](http://mmlab.ie.cuhk.edu.hk/pdf/YiSun_CVPR14.pdf)
-    - 《Deep learning face representation from predicting 10,000 classes》
+《Deep learning face representation from predicting 10,000 classes》
 
 2. [deepID2](http://mmlab.ie.cuhk.edu.hk/pdf/YiSun_CVPR14.pdf)
-    - 《Deep Learning Face Representation by Joint Identification-Verification》
+《Deep Learning Face Representation by Joint Identification-Verification》
 3. [deepID2+](http://www.ee.cuhk.edu.hk/~xgwang/papers/shaoKLWcvpr15.pdf)
-    - 《Deeply Learned Attributes for Crowded Scene Understanding", IEEE Conf. on Computer Vision and Pattern Recognition, June 2015 (Oral)》
+《Deeply Learned Attributes for Crowded Scene Understanding", IEEE Conf. on Computer Vision and Pattern Recognition, June 2015 (Oral)》
 4. [deepID3](http://arxiv.org/pdf/1502.00873.pdf)
-    - 《Face Recognition with Very Deep Neural Networks》
+《Face Recognition with Very Deep Neural Networks》
