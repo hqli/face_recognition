@@ -15,7 +15,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import skimage
 import sys
-sys.path.insert(0,'python')
+_command="rm -rf caffe\n"
+_command+="ln -s "+ os.path.expanduser('~/')+"/caffe-master/python/caffe ./caffe"
+os.system(_command)
+
 import caffe
 import sklearn.metrics.pairwise as pw
 
@@ -33,7 +36,6 @@ class DeepIDTest(DeepID):
 
     savepath=''#准确率与ROC曲线图像存储路径,一般放在deepID/num/test/下
 
-    drawlogpath=''#train.log的图像存储位置,在savepath下的drawlog
  
     left=''#pairs.txt分离的左图像路径的文本,放在工程文件夹下
     right=''#pairs.txt分离的右图像路径的文本
@@ -43,12 +45,14 @@ class DeepIDTest(DeepID):
     predict=''#预测值的文件
 
     lfwpath=''#已经剪切好的lfw图像
+    roc=''#roc图像
 
-    def __init__(self,prj,caffepath,prjpath,datapath,num,types,pairs,itera):
+    def __init__(self,prj,caffepath,prjpath,datapath,num,types,pairs,itera,lfwpath):
         DeepID.__init__(self,prj,caffepath,prjpath,datapath,num)
 
         self.itera=itera 
 
+	self.pairs=pairs
         self.lfwpath=lfwpath
 
         self.model=self.snapshot_pre+'_iter_'+str(itera)+'.caffemodel'
@@ -72,15 +76,13 @@ class DeepIDTest(DeepID):
             os.makedirs(self.savepath)
         self.accuracy=self.savepath+prj+'_'+str(num)+'_'+str(itera)+'_accuracy.txt'
         self.predict=self.savepath+prj+'_'+str(num)+'_'+str(itera)+'_predict.txt'
-        self.drawlogpath=self.prjpath+str(num)+'/'+'drawlog/'
-        if not os.path.exists(self.drawlogpath):
-            os.makedirs(self.drawlogpath) 
+        self.roc=self.savepath+prj+'_'+str(num)+'_'+str(itera)+'_roc'
 
 
     def split_pairs(self):
         ext='ppm'
-
-        pairs_result=testdeal(self.pairs,self.lfwpath,ext)
+	print self.lfwpath
+        pairs_result=testdeal(self.pairs, self.lfwpath,ext)
 
         fp_left=open(self.left,'w')
         fp_right=open(self.right,'w')
@@ -235,7 +237,7 @@ class DeepIDTest(DeepID):
         #np.savetxt('feature2.txt', feature2, delimiter=',')
 
         #提取标签    
-        labels=read_labels(filelist_label)
+        labels=DeepIDTest.read_labels(filelist_label)
         assert(len(labels)==test_num)
         #计算每个特征之间的距离
         mt=pw.pairwise_distances(feature1, feature2, metric=metric)
@@ -256,49 +258,24 @@ class DeepIDTest(DeepID):
 
         np.savetxt(open('thresholds.txt','w'),thresholds)    
         
-        DeepIDTest.draw_roc_curve(fpr,tpr,title=metric,save_name=modeldir+project+'_'+str(num)+'_'+str(itera))
-
-    def drawlog(self):
-        
-        drawlogpy=self.caffepath+'tools/extra/plot_training_log.py'
-        if not os.path.exists(drawlogpy):
-            _command='cp '+self.caffepath+'tools/extra/plot_training_log.py.example '+drawlogpy
-            os.system(_command)
-        pnglist=[]
-        pnglist.append('Test_accuracy_Iters.png')
-        pnglist.append('Test_accuracy_Seconds.png')
-        pnglist.append('Test_loss_Iters.png')
-        pnglist.append('Test_loss_Seconds.png')
-        pnglist.append('Train_accuracy_Iters.png')
-        pnglist.append('Train_accuracy_Seconds.png')
-        pnglist.append('Train_loss_Iters.png')
-        pnglist.append('Train_loss_Seconds.png')
-        i=0
-        while i<8:
-            _command='python '+self.caffepath+'tools/extra/plot_training_log.py '+str(i)+' '+self.drawlogpath+pnglist[i]+' '+self.train_log
-            print _command
-            os.system(_command)
-            i+=1
+        DeepIDTest.draw_roc_curve(fpr,tpr,title=metric,save_name=self.roc)
 
 def demo_test(num,itera):
     prj='deepID'
-    caffepath='/home/ikode/caffe-master/'
-    prjpath='/home/ikode/caffe-master/examples/deepID/'
-    datapath='/media/ikode/Document/big_materials/document/deep_learning/caffe/face_datasets/webface/croped/' 
+    home=os.path.expanduser('~/')
+    caffepath=home+'/caffe-master/'
+    prjpath=home+'/caffe-master/examples/deepID/'
+    datapath=home+'/caffe-master/data/deepID/webface/' 
     types=1
-    pairs='/home/ikode/caffe-master/examples/deepID/pairs.txt'
-    lfwpath='/home/ikode/examples/deepID/lfwcrop_color/faces/'
+    pairs=home+'/caffe-master/examples/deepID/pairs.txt'
+    lfwpath=home+'/caffe-master/data/deepID/lfwcrop_color/faces/'
 
     test=DeepIDTest(prj,caffepath,prjpath,datapath,num,types,pairs,itera,lfwpath)
-#        deepID.div_data(9)
-#        deepID.create(64,64)
-#        deepID.compute_imgmean()
-#       deepID.draw_net()
-#        deepID.train()
     
     test.split_pairs()
     test.evaluate(metric='cosine')
-#    test.drawlog() 
         
 if __name__=='__main__':
-    demo_test(10000,100000)
+    num=10000#人数
+    itera=750000#所选模型的迭代次数
+    demo_test(num,itera)
